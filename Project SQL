@@ -1,0 +1,72 @@
+-- 1.
+SELECT 
+  u.branch,
+  SUM(o.amount) AS total_sales,
+  COUNT(DISTINCT o.transactionid) AS num_transactions
+FROM `Projet_SQL.order_tab` o
+LEFT JOIN `Projet_SQL.user_tab` u ON o.customerid = u.customerid
+GROUP BY u.branch
+ORDER BY total_sales DESC;
+
+
+-- 2.
+SELECT 
+  u.branch,
+  DATE(o.transaction_time) AS transaction_date,
+  COUNT(DISTINCT o.customerid) AS active_customers
+FROM `Projet_SQL.order_tab` o
+LEFT JOIN `Projet_SQL.user_tab` u ON o.customerid = u.customerid
+GROUP BY u.branch, transaction_date
+ORDER BY transaction_date, u.branch;
+
+-- 3.
+SELECT 
+  u.branch,
+  o.transaction_type,
+  SUM(o.amount) AS total_amount
+FROM `Projet_SQL.order_tab` o
+LEFT JOIN `Projet_SQL.user_tab` u ON o.customerid = u.customerid
+GROUP BY u.branch, o.transaction_type
+ORDER BY u.branch, total_amount DESC
+LIMIT 5;
+
+
+-- 4.Customer Segmentation by Purchase Frequency
+WITH customer_frequency AS (
+  SELECT 
+    customerid,
+    COUNT(transactionid) AS purchase_count
+  FROM `Projet_SQL.order_tab`
+  GROUP BY customerid
+)
+SELECT 
+  customerid,
+  CASE
+    WHEN purchase_count = 1 THEN 'One-time Customer'
+    WHEN purchase_count BETWEEN 2 AND 5 THEN 'Frequent Customer'
+    ELSE 'Loyal Customer'
+  END AS customer_segment,
+  purchase_count
+FROM customer_frequency
+ORDER BY purchase_count DESC;
+
+
+
+-- 5. 
+SELECT 
+  user_tab.branch,
+  CASE
+    WHEN MOD(order_tab.transactionid, 2) = 0 THEN 'Even'
+    ELSE 'Odd'
+  END AS transaction_category,
+  COUNT(DISTINCT user_tab.customerid) AS buyer_count
+FROM 
+  `Projet_SQL.order_tab` as order_tab
+JOIN 
+  `Projet_SQL.user_tab` as user_tab
+  ON order_tab.customerid = user_tab.customerid
+GROUP BY 
+  user_tab.branch, transaction_category;
+
+
+
